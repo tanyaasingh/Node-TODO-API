@@ -1,3 +1,5 @@
+var _=require('lodash')
+
 var express=require('express');
 var bodyParser=require('body-parser')
 var app=express();
@@ -59,6 +61,31 @@ app.delete('/todos/:id',(req,res)=>{
     })
 
 })
+app.patch('/todos/:id',(req,res)=>{
+    var id=req.params.id;
+    //only updating text and completed
+    var body= _.pick(req.body,['text','completed'])
+    // if(!ObjectId.isValid(id)){
+    //     return res.status(404).send();
+    // }
+    if(_.isBoolean(body.completed) && body.completed){
+        body.completedAt=new Date().getTime()
+    }else{
+        body.completed=false;
+        body.completedAt=null;
+    }
+
+    Todo.findByIdAndUpdate(id,{$set:body},{new:true}).then((todo)=>{
+        if(!todo){
+            return res.status(404).send();
+        }
+        res.send({todo})
+    }).catch((e)=>{
+        res.status(404).send();
+    })
+
+})
+
 app.listen(3000,()=>{
     console.log('Started on port 3000')
 })
